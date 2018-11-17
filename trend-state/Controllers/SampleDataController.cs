@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace trend_state.Controllers
 {
     [Route("api/[controller]")]
-    public class SampleDataController : Controller
+    public partial class SampleDataController : Controller
     {
         private static string[] Summaries = new[]
         {
@@ -24,6 +24,13 @@ namespace trend_state.Controllers
                 TemperatureC = rng.Next(-20, 55),
                 Summary = Summaries[rng.Next(Summaries.Length)]
             });
+        }
+
+        [HttpGet("[action]")]
+        public IEnumerable<Candle> Candles()
+        {
+            var candlesLoader = new CandlesLoader("HistoryData/EURUSD_201810.csv");
+            return candlesLoader.LoadAll();
         }
 
         public class WeatherForecast
