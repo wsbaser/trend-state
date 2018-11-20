@@ -10,5 +10,6 @@ namespace trend_state.Controllers
         public float High;
         public float Low;
         public float Close;
+        public float Volume;
     }
 }

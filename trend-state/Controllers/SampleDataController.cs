@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using TrendState.Analyzers;
 
 namespace trend_state.Controllers
 {
@@ -30,7 +31,18 @@ namespace trend_state.Controllers
         public IEnumerable<Candle> Candles()
         {
             var candlesLoader = new CandlesLoader("HistoryData/EURUSD_201810.csv");
-            return candlesLoader.LoadAll();
+            var candles = candlesLoader.LoadAll();
+            var analyzer = new TrendStateAnalyzer();
+            foreach (var candle in candles)
+            {
+                var volume = analyzer.AddCandle(candle);
+                if (volume > 0.5)
+                {
+                    candle.Volume = volume;
+                }
+            }
+
+            return candles;
         }
 
         public class WeatherForecast

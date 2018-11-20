@@ -1,7 +1,6 @@
 ﻿import React from 'react';
 import { render } from 'react-dom';
 import Chart from './Chart';
-import Renco from './Renco';
 import { getData } from "./utils"
 
 import { TypeChooser } from "react-stockcharts/lib/helper";
@@ -30,7 +29,6 @@ export class ChartComponent extends React.Component {
         return (
             <div>
                 <Chart type="hybrid" data={this.state.data} />
-                <Renco type="hybrid" data={this.state.data} />
             </div>
         )
     }

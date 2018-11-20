@@ -1,147 +1,116 @@
-﻿import { format } from "d3-format";
-import { timeFormat } from "d3-time-format";
-
+﻿
 import React from "react";
 import PropTypes from "prop-types";
 
-import { ChartCanvas, Chart } from "react-stockcharts";
+import { format } from "d3-format";
+import { timeFormat } from "d3-time-format";
+
+import { ChartCanvas, Chart, ZoomButtons } from "react-stockcharts";
 import {
     BarSeries,
-    AreaSeries,
     CandlestickSeries,
-    LineSeries,
-    MACDSeries,
 } from "react-stockcharts/lib/series";
 import { XAxis, YAxis } from "react-stockcharts/lib/axes";
 import {
     CrossHairCursor,
-    EdgeIndicator,
-    CurrentCoordinate,
     MouseCoordinateX,
     MouseCoordinateY,
 } from "react-stockcharts/lib/coordinates";
 
-import { discontinuousTimeScaleProviderBuilder } from "react-stockcharts/lib/scale";
-import { OHLCTooltip, MovingAverageTooltip, MACDTooltip } from "react-stockcharts/lib/tooltip";
-import { ema, sma, macd } from "react-stockcharts/lib/indicator";
+import { discontinuousTimeScaleProvider } from "react-stockcharts/lib/scale";
+import {
+    OHLCTooltip,
+} from "react-stockcharts/lib/tooltip";
 import { fitWidth } from "react-stockcharts/lib/helper";
+import { last } from "react-stockcharts/lib/utils";
 
-function getMaxUndefined(calculators) {
-    return calculators.map(each => each.undefinedLength()).reduce((a, b) => Math.max(a, b));
-}
-const LENGTH_TO_SHOW = 180;
-
-class CandleStickChartPanToLoadMore extends React.Component {
+class CandleStickChartWithZoomPan extends React.Component {
     constructor(props) {
         super(props);
-        const { data: inputData } = props;
-
-        const ema26 = ema()
-            .id(0)
-            .options({ windowSize: 26 })
-            .merge((d, c) => { d.ema26 = c; })
-            .accessor(d => d.ema26);
-
-        const ema12 = ema()
-            .id(1)
-            .options({ windowSize: 12 })
-            .merge((d, c) => { d.ema12 = c; })
-            .accessor(d => d.ema12);
-
-        const maxWindowSize = getMaxUndefined([
-            ema26,
-            ema12
-        ]);
-        /* SERVER - START */
-        const dataToCalculate = inputData.slice(-LENGTH_TO_SHOW - maxWindowSize);
-
-        const calculatedData = ema26(ema12(dataToCalculate));
-        const indexCalculator = discontinuousTimeScaleProviderBuilder().indexCalculator();
-
-        // console.log(inputData.length, dataToCalculate.length, maxWindowSize)
-        const { index } = indexCalculator(calculatedData);
-        /* SERVER - END */
-
-        const xScaleProvider = discontinuousTimeScaleProviderBuilder()
-            .withIndex(index);
-        const { data: linearData, xScale, xAccessor, displayXAccessor } = xScaleProvider(calculatedData.slice(-LENGTH_TO_SHOW));
-
-        // console.log(head(linearData), last(linearData))
-        // console.log(linearData.length)
-
-        this.state = {
-            ema26,
-            ema12,
-            linearData,
-            data: linearData,
-            xScale,
-            xAccessor, displayXAccessor
-        };
-        this.handleDownloadMore = this.handleDownloadMore.bind(this);
+        this.saveNode = this.saveNode.bind(this);
+        this.resetYDomain = this.resetYDomain.bind(this);
+        this.handleReset = this.handleReset.bind(this);
     }
-    handleDownloadMore(start, end) {
-        if (Math.ceil(start) === end) return;
-        // console.log("rows to download", rowsToDownload, start, end)
-        const { data: prevData, ema26, ema12, macdCalculator, smaVolume50 } = this.state;
-        const { data: inputData } = this.props;
-
-
-        if (inputData.length === prevData.length) return;
-
-        const rowsToDownload = end - Math.ceil(start);
-
-        const maxWindowSize = getMaxUndefined([ema26,
-            ema12
-        ]);
-
-        /* SERVER - START */
-        const dataToCalculate = inputData
-            .slice(-rowsToDownload - maxWindowSize - prevData.length, - prevData.length);
-
-        const calculatedData = ema26(ema12(dataToCalculate));
-        const indexCalculator = discontinuousTimeScaleProviderBuilder()
-            .initialIndex(Math.ceil(start))
-            .indexCalculator();
-        const { index } = indexCalculator(
-            calculatedData
-                .slice(-rowsToDownload)
-                .concat(prevData));
-        /* SERVER - END */
-
-        const xScaleProvider = discontinuousTimeScaleProviderBuilder()
-            .initialIndex(Math.ceil(start))
-            .withIndex(index);
-
-        const { data: linearData, xScale, xAccessor, displayXAccessor } = xScaleProvider(calculatedData.slice(-rowsToDownload).concat(prevData));
-
-        // console.log(linearData.length)
-        setTimeout(() => {
-            // simulate a lag for ajax
-            this.setState({
-                data: linearData,
-                xScale,
-                xAccessor,
-                displayXAccessor,
-            });
-        }, 300);
+    componentWillMount() {
+        this.setState({
+            suffix: 1
+        });
+    }
+    saveNode(node) {
+        this.node = node;
+    }
+    resetYDomain() {
+        this.node.resetYDomain();
+    }
+    handleReset() {
+        this.setState({
+            suffix: this.state.suffix + 1
+        });
     }
     render() {
         const { type, width, ratio } = this.props;
-        const { data, ema26, ema12, macdCalculator, smaVolume50, xScale, xAccessor, displayXAccessor } = this.state;
+        const { mouseMoveEvent, panEvent, zoomEvent, zoomAnchor } = this.props;
+        const { clamp } = this.props;
+
+        const { data: initialData } = this.props;
+
+        const xScaleProvider = discontinuousTimeScaleProvider
+            .inputDateAccessor(d => d.date);
+        const {
+            data,
+            xScale,
+            xAccessor,
+            displayXAccessor,
+        } = xScaleProvider(initialData);
+
+        const start = xAccessor(last(data));
+        const end = xAccessor(data[Math.max(0, data.length - 150)]);
+        const xExtents = [start, end];
+
+        const margin = { left: 70, right: 70, top: 20, bottom: 30 };
+
+        const height = 400;
+
+        const gridHeight = height - margin.top - margin.bottom;
+        const gridWidth = width - margin.left - margin.right;
+
+        const showGrid = true;
+        const yGrid = showGrid ? { innerTickSize: -1 * gridWidth, tickStrokeOpacity: 0.2 } : {};
+        const xGrid = showGrid ? { innerTickSize: -1 * gridHeight, tickStrokeOpacity: 0.2 } : {};
 
         return (
-            <ChartCanvas ratio={ratio} width={width} height={450}
-                margin={{ left: 70, right: 70, top: 20, bottom: 30 }} type={type}
-                seriesName="MSFT"
-                data={data}
-                xScale={xScale} xAccessor={xAccessor} displayXAccessor={displayXAccessor}
-                onLoadMore={this.handleDownloadMore}>
-                <Chart id={1} height={400}
-                    yExtents={[d => [d.high, d.low], ema26.accessor(), ema12.accessor()]}
-                    padding={{ top: 10, bottom: 20 }}>
+            <ChartCanvas ref={this.saveNode} height={height}
+                ratio={ratio}
+                width={width}
+                margin={{ left: 70, right: 70, top: 10, bottom: 30 }}
 
-                    <XAxis axisAt="bottom" orient="bottom" outerTickSize={0} />
-                    <YAxis axisAt="right" orient="right" ticks={5} />
+                mouseMoveEvent={mouseMoveEvent}
+                panEvent={panEvent}
+                zoomEvent={zoomEvent}
+                clamp={clamp}
+                zoomAnchor={zoomAnchor}
+                type={type}
+                seriesName={`MSFT_${this.state.suffix}`}
+                data={data}
+                xScale={xScale}
+                xExtents={xExtents}
+                xAccessor={xAccessor}
+                displayXAccessor={displayXAccessor}
+            >
+
+                <Chart id={1}
+                    yExtents={d => [d.high, d.low]}
+                >
+                    <XAxis axisAt="bottom"
+                        orient="bottom"
+                        zoomEnabled={zoomEvent}
+                        {...xGrid} />
+                    <YAxis axisAt="right"
+                        orient="right"
+                        ticks={5}
+                        zoomEnabled={zoomEvent}
+                        {...yGrid}
+                    />
 
                     <MouseCoordinateY
                         at="right"
@@ -149,35 +118,55 @@ class CandleStickChartPanToLoadMore extends React.Component {
                         displayFormat={format(".2f")} />
 
                     <CandlestickSeries />
-                    <LineSeries yAccessor={ema26.accessor()} stroke={ema26.stroke()} />
-                    <LineSeries yAccessor={ema12.accessor()} stroke={ema12.stroke()} />
-
-                    <CurrentCoordinate yAccessor={ema26.accessor()} fill={ema26.stroke()} />
-                    <CurrentCoordinate yAccessor={ema12.accessor()} fill={ema12.stroke()} />
-
+                    <OHLCTooltip origin={[-40, 0]} />
+                    <ZoomButtons
+                        onReset={this.handleReset}
+                    />
                 </Chart>
+                <Chart id={2}
+                    yExtents={d => d.volume}
+                    height={150} origin={(w, h) => [0, h - 150]}
+                >
+                    <YAxis
+                        axisAt="left"
+                        orient="left"
+                        ticks={5}
+                        tickFormat={format(".2s")}
+                        zoomEnabled={zoomEvent}
+                    />
 
+                    <MouseCoordinateX
+                        at="bottom"
+                        orient="bottom"
+                        displayFormat={timeFormat("%Y-%m-%d")} />
+                    <MouseCoordinateY
+                        at="left"
+                        orient="left"
+                        displayFormat={format(".4s")} />
+
+                    <BarSeries yAccessor={d => d.volume} fill={(d) => d.close > d.open ? "#6BA583" : "#FF0000"} />
+                </Chart>
                 <CrossHairCursor />
             </ChartCanvas>
         );
     }
 }
 
-/*
-
-*/
-
-CandleStickChartPanToLoadMore.propTypes = {
+CandleStickChartWithZoomPan.propTypes = {
     data: PropTypes.array.isRequired,
     width: PropTypes.number.isRequired,
     ratio: PropTypes.number.isRequired,
     type: PropTypes.oneOf(["svg", "hybrid"]).isRequired,
 };
 
-CandleStickChartPanToLoadMore.defaultProps = {
+CandleStickChartWithZoomPan.defaultProps = {
     type: "svg",
+    mouseMoveEvent: true,
+    panEvent: true,
+    zoomEvent: true,
+    clamp: false,
 };
 
-CandleStickChartPanToLoadMore = fitWidth(CandleStickChartPanToLoadMore);
+CandleStickChartWithZoomPan = fitWidth(CandleStickChartWithZoomPan);
 
-export default CandleStickChartPanToLoadMore;
+export default CandleStickChartWithZoomPan;
