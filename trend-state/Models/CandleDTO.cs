@@ -1,9 +1,9 @@
 using System;
 
-namespace trend_state.Controllers
+namespace TrendState.Models
 {
 
-    public class Candle
+    public class CandleDTO
     {
         public DateTime Date;
         public float Open;

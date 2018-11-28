@@ -2,14 +2,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
-using trend_state.Controllers;
+using TrendState.Controllers;
+using TrendState.Models;
+using TrendState.Utils;
 
 namespace TrendState.Analyzers
 {
     public class TrendStateAnalyzer
     {
-        public List<Candle> _candles;
-        private Candle LastCandle => _candles.Last();
+        public List<CandleDTO> _candles;
+        private CandleDTO LastCandle => _candles.Last();
 
         private EMACalculator _ma8;
         private EMACalculator _ma21;
@@ -23,7 +25,7 @@ namespace TrendState.Analyzers
         {
             _ma8 = new EMACalculator(8);
             _ma21 = new EMACalculator(21);
-            _candles = new List<Candle>();
+            _candles = new List<CandleDTO>();
             _closedStakes = new List<Stake>();
             OverallQuality = new EMACalculator(5);
             OnePip = new Lazy<float>(CalculateOnePip);
@@ -42,7 +44,7 @@ namespace TrendState.Analyzers
 
         public Direction TrendDirection => _ma8.Value > _ma21.Value ? Direction.Up : Direction.Down;
 
-        public float AddCandle(Candle candle)
+        public float AddCandle(CandleDTO candle)
         {
             _candles.Add(candle);
             if (CalculateEMAs(candle))
@@ -54,7 +56,7 @@ namespace TrendState.Analyzers
             return OverallQuality.Value;
         }
         
-        private bool CalculateEMAs(Candle candle)
+        private bool CalculateEMAs(CandleDTO candle)
         {
             _ma8.AddValue(candle.Close);
             _ma21.AddValue(candle.Close);
@@ -140,25 +142,25 @@ namespace TrendState.Analyzers
 
     internal class Stake
     {
-        private List<Candle> _candles;
+        private List<CandleDTO> _candles;
         public float Price;
         public int Time;
         private Direction Direction;
         private float _onePip { get; set; }
 
-        public Stake(float price, int time, Direction direction, Candle firstCandle, float onePip)
+        public Stake(float price, int time, Direction direction, CandleDTO firstCandle, float onePip)
         {
             Price = price;
             Time = time;
             Direction = direction;
             _onePip = onePip;
-            _candles = new List<Candle> { firstCandle };
+            _candles = new List<CandleDTO> { firstCandle };
         }
 
         public float Quality { get; set; }
         public bool Closed { get; private set; }
 
-        public void AddCandle(Candle candle)
+        public void AddCandle(CandleDTO candle)
         {
             _candles.Add(candle);
             if (_candles.Count == Time)

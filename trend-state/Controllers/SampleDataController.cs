@@ -4,8 +4,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using TrendState.Analyzers;
+using TrendState.Models;
+using TrendState.Utils;
 
-namespace trend_state.Controllers
+namespace TrendState.Controllers
 {
     [Route("api/[controller]")]
     public partial class SampleDataController : Controller
@@ -28,7 +30,7 @@ namespace trend_state.Controllers
         }
 
         [HttpGet("[action]")]
-        public IEnumerable<Candle> Candles()
+        public IEnumerable<CandleDTO> Candles()
         {
             var candlesLoader = new CandlesLoader("HistoryData/EURUSD_201810.csv");
             var candles = candlesLoader.LoadAll();

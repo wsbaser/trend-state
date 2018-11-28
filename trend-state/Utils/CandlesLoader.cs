@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using TrendState.Models;
 
-namespace trend_state.Controllers
+namespace TrendState.Utils
 {
     public class CandlesLoader
     {
@@ -15,16 +16,16 @@ namespace trend_state.Controllers
             this._fileName = fileName;
         }
 
-        public IEnumerable<Candle> LoadAll()
+        public IEnumerable<CandleDTO> LoadAll()
         {
-            var candles = new List<Candle>();
+            var candles = new List<CandleDTO>();
             using (StreamReader sr = new StreamReader(_fileName))
             {
                 var lines = ReadLines(sr).ToList();
                 foreach (var line in lines)
                 {
                     var arr = line.Split(';');
-                    candles.Add(new Candle()
+                    candles.Add(new CandleDTO()
                     {
                         Date = DateTime.ParseExact(arr[0], "yyyyMMdd HHmmss", CultureInfo.InvariantCulture),
                         Open = float.Parse(arr[1], CultureInfo.InvariantCulture),
