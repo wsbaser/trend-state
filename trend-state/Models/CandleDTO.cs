@@ -11,5 +11,17 @@ namespace TrendState.Models
         public float Low;
         public float Close;
         public float Volume;
+
+        public CandleDTO(){
+        }
+
+        public CandleDTO(Candle candle)
+        {
+            Date = candle.Date;
+            Open = candle.Open;
+            High = candle.High;
+            Low = candle.Low;
+            Close = candle.Close;
+        }
     }
 }

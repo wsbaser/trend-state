@@ -25,5 +25,11 @@ namespace TrendState.Models
         public float High { get; set; }
         public float Low { get; set; }
         public float Close { get; set; }
+
+        public Candle(DateTime date, float startPrice = 0)
+        {
+            Date = date;
+            Open = Close = High = Low = startPrice;
+        }
     }
 }

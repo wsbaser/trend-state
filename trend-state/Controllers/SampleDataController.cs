@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using TrendState.Analyzers;
 using TrendState.Models;
+using TrendState.Services;
 using TrendState.Utils;
 
 namespace TrendState.Controllers
@@ -32,19 +33,22 @@ namespace TrendState.Controllers
         [HttpGet("[action]")]
         public IEnumerable<CandleDTO> Candles()
         {
-            var candlesLoader = new CandlesLoader("HistoryData/EURUSD_201810.csv");
-            var candles = candlesLoader.LoadAll();
+            //var candlesLoader = new CandlesLoader("HistoryData/EURUSD_201810.csv");
+            //var candles = candlesLoader.LoadAll();
             var analyzer = new TrendStateAnalyzer();
-            foreach (var candle in candles)
+            var candlesDto = new List<CandleDTO>();
+            foreach (var candle in CandlesAggregator.Inst.Candles["EURUSD"])
             {
-                var volume = analyzer.AddCandle(candle);
+                var candleDto = new CandleDTO(candle);
+                candlesDto.Add(candleDto);
+                var volume = analyzer.AddCandle(candleDto);
                 if (volume > 0.5)
                 {
-                    candle.Volume = volume;
+                    candleDto.Volume = volume;
                 }
             }
 
-            return candles;
+            return candlesDto;
         }
 
         public class WeatherForecast
