@@ -37,7 +37,7 @@ namespace TrendState.Controllers
             //var candles = candlesLoader.LoadAll();
             var analyzer = new TrendStateAnalyzer();
             var candlesDto = new List<CandleDTO>();
-            foreach (var candle in CandlesAggregator.Inst.Candles["EURUSD"])
+            foreach (var candle in CandlesAggregator.Inst.Candles["BTCEUR"])
             {
                 var candleDto = new CandleDTO(candle);
                 candlesDto.Add(candleDto);

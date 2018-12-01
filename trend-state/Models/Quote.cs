@@ -2,7 +2,7 @@
 
 namespace TrendState.Models
 {
-    public class QuotePrice
+    public class Quote
     {
         public string Symbol;
         public float Price;
@@ -10,6 +10,9 @@ namespace TrendState.Models
         public float Ask;
 
         private long _timestamp;
+        /// <summary>
+        /// Unix time in milliseconds
+        /// </summary>
         public long Timestamp{
             get{
                 return _timestamp;
@@ -21,7 +24,7 @@ namespace TrendState.Models
         }
         public DateTime Date;
 
-        public QuotePrice(string symbol,long timestamp, float price)
+        public Quote(string symbol, long timestamp, float price)
         {
             Symbol = symbol;
             Timestamp = timestamp;
