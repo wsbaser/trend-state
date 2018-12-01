@@ -10,7 +10,7 @@ using TrendState.Models;
 namespace TrendState.Migrations
 {
     [DbContext(typeof(TrendStateContext))]
-    [Migration("20181125155720_AddedCandleModel")]
+    [Migration("20181201193238_AddedCandleModel")]
     partial class AddedCandleModel
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -36,9 +36,11 @@ namespace TrendState.Migrations
 
                     b.Property<float>("Open");
 
+                    b.Property<string>("Symbol");
+
                     b.HasKey("Id");
 
-                    b.ToTable("Users");
+                    b.ToTable("Candles");
                 });
 #pragma warning restore 612, 618
         }

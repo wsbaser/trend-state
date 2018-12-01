@@ -13,15 +13,17 @@ namespace TrendState.Services
         public static CandlesAggregator Inst = new CandlesAggregator(
             new List<string> { "BTCEUR" },
             60,
-            new OneForgeQuotesProvider(new List<string>() { "BTCEUR" }));
+            new OneForgeQuotesProvider(new List<string>() { "BTCEUR" }),
+            new TrendStateRepository());
 
         public Dictionary<string, List<Candle>> Candles;
         private Dictionary<string, Candle> _activeCandle;
         public ushort CandlePeriod;
         private readonly IQuotesProvider _quotesProvider;
         public readonly List<string> _symbols;
+        private ICandlesRepository _candlesRepository;
 
-        private CandlesAggregator(List<string> symbols, ushort candlePeriod, IQuotesProvider quotesProvider)
+        private CandlesAggregator(List<string> symbols, ushort candlePeriod, IQuotesProvider quotesProvider, ICandlesRepository candlesRepository)
         {
             _symbols = symbols;
             Candles = new Dictionary<string, List<Candle>>();
@@ -32,6 +34,7 @@ namespace TrendState.Services
             }
             CandlePeriod = candlePeriod;
             _quotesProvider = quotesProvider;
+            _candlesRepository = candlesRepository;
         }
 
         public void Start()
@@ -75,7 +78,7 @@ namespace TrendState.Services
                 if (activeCandle == null)
                 {
                     // . create first candle
-                    _activeCandle[quotePrice.Symbol] = new Candle(DateTime.UtcNow, quotePrice.Price);
+                    _activeCandle[quotePrice.Symbol] = new Candle(symbol, DateTime.UtcNow, quotePrice.Price);
                 }
                 else
                 {
@@ -84,12 +87,18 @@ namespace TrendState.Services
                     if (UpdateCandle(quoteActiveCandle, quotePrice))
                     {
                         // . save closed candle, create new
-                        Candles[symbol].Add(quoteActiveCandle);
+                        SaveCandle(quoteActiveCandle);
                         var newCandleDate = quoteActiveCandle.Date.AddSeconds(CandlePeriod);
-                        _activeCandle[quotePrice.Symbol] = new Candle(newCandleDate, quotePrice.Price);
+                        _activeCandle[symbol] = new Candle(symbol, newCandleDate, quotePrice.Price);
                     }
                 }
             }
+        }
+
+        private void SaveCandle(Candle candle)
+        {
+            Candles[candle.Symbol].Add(candle);
+            _candlesRepository.SaveCandle(candle);
         }
 
         private bool UpdateCandle(Candle canle, Quote newPrice)

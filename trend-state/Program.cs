@@ -8,7 +8,7 @@ namespace trend_state
     {
         public static void Main(string[] args)
         {
-           CandlesAggregator.Inst.Start();
+            CandlesAggregator.Inst.Start();
             CreateWebHostBuilder(args).Build().Run();
         }
 

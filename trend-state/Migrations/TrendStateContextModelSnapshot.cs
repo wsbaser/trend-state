@@ -34,9 +34,11 @@ namespace TrendState.Migrations
 
                     b.Property<float>("Open");
 
+                    b.Property<string>("Symbol");
+
                     b.HasKey("Id");
 
-                    b.ToTable("Users");
+                    b.ToTable("Candles");
                 });
 #pragma warning restore 612, 618
         }

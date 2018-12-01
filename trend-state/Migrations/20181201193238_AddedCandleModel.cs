@@ -9,11 +9,12 @@ namespace TrendState.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Users",
+                name: "Candles",
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn),
+                    Symbol = table.Column<string>(nullable: true),
                     Date = table.Column<DateTime>(nullable: false),
                     Open = table.Column<float>(nullable: false),
                     High = table.Column<float>(nullable: false),
@@ -22,14 +23,14 @@ namespace TrendState.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Users", x => x.Id);
+                    table.PrimaryKey("PK_Candles", x => x.Id);
                 });
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Users");
+                name: "Candles");
         }
     }
 }
