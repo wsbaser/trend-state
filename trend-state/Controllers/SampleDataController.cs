@@ -33,13 +33,14 @@ namespace TrendState.Controllers
         [HttpGet("[action]")]
         public IEnumerable<CandleDTO> Candles()
         {
-            //var candlesLoader = new CandlesLoader("HistoryData/EURUSD_201810.csv");
-            //var candles = candlesLoader.LoadAll();
+            var candlesLoader = new CandlesLoader("HistoryData/EURUSD_201810.csv");
+            var candles = candlesLoader.LoadAll();
+            //var canles = CandlesAggregator.Inst.Candles["BTCEUR"]
             var analyzer = new TrendStateAnalyzer();
             var candlesDto = new List<CandleDTO>();
-            foreach (var candle in CandlesAggregator.Inst.Candles["BTCEUR"])
+            foreach (var candleDto in candles)
             {
-                var candleDto = new CandleDTO(candle);
+                //var candleDto = new CandleDTO(candle);
                 candlesDto.Add(candleDto);
                 var volume = analyzer.AddCandle(candleDto);
                 if (volume > 0.5)

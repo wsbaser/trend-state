@@ -38,7 +38,19 @@ namespace TrendState.Services
                 // TODO: log error here
                 return new List<Quote>();
             }
-            var responseQuotes = JsonConvert.DeserializeObject<List<JsonQuote>>(jsonString);
+            List<JsonQuote> responseQuotes;
+
+            try
+            {
+                responseQuotes = JsonConvert.DeserializeObject<List<JsonQuote>>(jsonString);
+            }
+            catch (JsonException)
+            {
+                var errorResponse = JsonConvert.DeserializeObject<ErrorResponse>(jsonString);
+                Console.WriteLine(errorResponse.message);
+                return new List<Quote>();
+            }
+
             var symbolToQuote = responseQuotes.ToDictionary(q => q.symbol);
             var quotes = new List<Quote>();
             foreach (var symbol in Symbols)
@@ -50,6 +62,13 @@ namespace TrendState.Services
                 quotes.Add(symbolToQuote[symbol].ToQuote());
             }
             return quotes;
+        }
+
+        private class ErrorResponse
+        {
+            public string error;
+            public string message;
+
         }
 
         private class JsonQuote

@@ -44,10 +44,14 @@ namespace TrendState.Services
             {
                 while (true)
                 {
-                    // poll hardware
-                    var quotes = _quotesProvider.GetQuotes();
-                    Aggregate(quotes);
-
+                    try
+                    {
+                        Aggregate(_quotesProvider.GetQuotes());
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.Message);
+                    }
                     Thread.Sleep(delay);
                     if (token.IsCancellationRequested)
                         break;
@@ -62,12 +66,19 @@ namespace TrendState.Services
             foreach (var symbol in _symbols)
             {
                 var quotePrice = quotePrices.SingleOrDefault(q => q.Symbol == symbol);
+                var activeCandle = _activeCandle.ContainsKey(symbol) ? _activeCandle[symbol] : null;
                 if (quotePrice == null)
                 {
-                    // TODO: log error here
                     Console.WriteLine($"No price for '{symbol}'.");
+                    quotePrice = new Quote(symbol, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), activeCandle?.Close ?? 0);
                 }
-                if (_activeCandle.ContainsKey(quotePrice.Symbol)){
+                if (activeCandle == null)
+                {
+                    // . create first candle
+                    _activeCandle[quotePrice.Symbol] = new Candle(DateTime.UtcNow, quotePrice.Price);
+                }
+                else
+                {
                     // .upadte candle
                     var quoteActiveCandle = _activeCandle[quotePrice.Symbol];
                     if (UpdateCandle(quoteActiveCandle, quotePrice))
@@ -77,11 +88,6 @@ namespace TrendState.Services
                         var newCandleDate = quoteActiveCandle.Date.AddSeconds(CandlePeriod);
                         _activeCandle[quotePrice.Symbol] = new Candle(newCandleDate, quotePrice.Price);
                     }
-                }
-                else
-                {
-                    // . create first candle
-                    _activeCandle[quotePrice.Symbol] = new Candle(DateTime.UtcNow, quotePrice.Price);
                 }
             }
         }
