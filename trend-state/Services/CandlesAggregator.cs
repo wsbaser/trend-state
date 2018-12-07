@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using NUnit.Framework;
 using TrendState.Models;
 
 namespace TrendState.Services
@@ -11,10 +10,10 @@ namespace TrendState.Services
     public class CandlesAggregator
     {
         public static CandlesAggregator Inst = new CandlesAggregator(
-            new List<string> { "BTCEUR" },
+            new List<string> { "EURUSD" },
             60,
-            new OneForgeQuotesProvider(new List<string>() { "BTCEUR" }),
-            new TrendStateRepository());
+            new TrueFXQuotesProvider(new List<string>() { "EURUSD" }),
+            null);
 
         public Dictionary<string, List<Candle>> Candles;
         private Dictionary<string, Candle> _activeCandle;
@@ -23,7 +22,7 @@ namespace TrendState.Services
         public readonly List<string> _symbols;
         private ICandlesRepository _candlesRepository;
 
-        private CandlesAggregator(List<string> symbols, ushort candlePeriod, IQuotesProvider quotesProvider, ICandlesRepository candlesRepository)
+        private CandlesAggregator(List<string> symbols, ushort candlePeriod, IQuotesProvider quotesProvider, ICandlesRepository candlesRepository=null)
         {
             _symbols = symbols;
             Candles = new Dictionary<string, List<Candle>>();
@@ -98,7 +97,14 @@ namespace TrendState.Services
         private void SaveCandle(Candle candle)
         {
             Candles[candle.Symbol].Add(candle);
-            _candlesRepository.SaveCandle(candle);
+            if (_candlesRepository != null)
+            {
+                _candlesRepository.SaveCandle(candle);
+            }
+            if (Candles[candle.Symbol].Count > 10000)
+            {
+                Candles[candle.Symbol].RemoveRange(0, 1000);
+            }
         }
 
         private bool UpdateCandle(Candle canle, Quote newPrice)

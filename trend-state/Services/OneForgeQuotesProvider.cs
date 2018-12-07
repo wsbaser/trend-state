@@ -9,7 +9,7 @@ namespace TrendState.Services
 {
     public class OneForgeQuotesProvider : IQuotesProvider
     {
-        public List<string> SupportedSymbols => new List<string>() { "BTCEUR" };
+        public List<string> SupportedSymbols => new List<string>() { "EURUSD" };
 
         public List<string> Symbols { get; private set; }
 
