@@ -22,7 +22,7 @@
         "Email": "test.admin@westkm.com"
       },
       "Name": "km",
-      "Server": "c273krmwestkm.tlr.thomson.com",
+      "Server": "localhost",
       "Port": 1433,
       "+User": "vVudue9xgfbMYF8biXbPfA==",
       "+Password": "vVudue9xgfbMYF8biXbPfA==",
@@ -32,7 +32,7 @@
     },
     "KmRidDatabase": {
       "Name": "kmrid",
-      "Server": "c273krmwestkm.tlr.thomson.com",
+      "Server": "localhost",
       "Port": 1433,
       "+User": "vVudue9xgfbMYF8biXbPfA==",
       "+Password": "vVudue9xgfbMYF8biXbPfA==",
@@ -50,7 +50,7 @@
       "GridPageSize": 10,
       "WorkspacePath": "{{dataPath}}\\Workspace",
       "VirtualDirectory": "km",
-      "ApplicationUrl": "http://c273krmwestkm.tlr.thomson.com/KM",
+      "ApplicationUrl": "http://localhost/KM",
       "UseSsl": false
     },
     "Server": {
@@ -58,11 +58,11 @@
     },
     "DataPath": "C:\\ProgramData\\Thomson",
     "Elasticsearch": {
-      "Uri": "http://c273krmwestkm.tlr.thomson.com:9200/",
+      "Uri": "http://localhost:9200/",
       "DataPath": "{{dataPath}}\\ElasticSearch",
-      "ZenHosts": "\"c273krmwestkm.tlr.thomson.com\"",
-      "Server": "c273krmwestkm.tlr.thomson.com",
-      "ClusterName": "cluster-c273krmwestkm.tlr.thomson.com",
+      "ZenHosts": "\"localhost\"",
+      "Server": "localhost",
+      "ClusterName": "cluster-localhost",
       "NodeName": "node-{{server}}",
       "DataPort": 9200,
       "JvmHeap": 2048
@@ -81,7 +81,7 @@
       "+password": "CczkJ7M2fnm5jD98P75a4g=="
     }
   },
-  "c273krmwestkm.tlr.thomson.com": {
+  "localhost": {
     "Features": [
       {
         "FeatureName": "Es",
@@ -155,7 +155,8 @@
       }
     ],
     "Server": {
-      "ServerName": "c273krmwestkm.tlr.thomson.com"
+      "ServerName": "localhost"
     }
   }
 }
+
